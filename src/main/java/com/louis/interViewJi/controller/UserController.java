@@ -45,8 +45,7 @@ import static com.louis.interViewJi.service.impl.UserServiceImpl.SALT;
 /**
  * 用户接口
  *
- * @author <a href="https://github.com/lilouis">程序员鱼皮</a>
- * @from <a href="https://louis.icu">编程导航知识星球</a>
+
  */
 @RestController
 @RequestMapping("/user")
