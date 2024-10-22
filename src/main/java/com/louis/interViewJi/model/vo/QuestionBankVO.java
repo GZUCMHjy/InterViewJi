@@ -1,5 +1,7 @@
 package com.louis.interViewJi.model.vo;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.louis.interViewJi.model.entity.Question;
 import com.louis.interViewJi.model.entity.QuestionBank;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
@@ -58,7 +60,10 @@ public class QuestionBankVO implements Serializable {
      * 创建用户信息
      */
     private UserVO user;
-
+    /**
+     * 返回题目分页数据
+     */
+    Page<Question> questionPage;
     /**
      * 封装类转对象
      *

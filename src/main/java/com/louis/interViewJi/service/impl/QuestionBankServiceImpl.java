@@ -65,8 +65,8 @@ public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, Que
     }
 
     /**
-     * 获取查询条件
-     *
+     * 获取查询条件(学习该写法，通用的组合查询条件)
+     * 拼接模糊、精准、多字段、排序
      * @param questionBankQueryRequest
      * @return
      */
@@ -84,13 +84,19 @@ public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, Que
         String sortField = questionBankQueryRequest.getSortField();
         String sortOrder = questionBankQueryRequest.getSortOrder();
         Long userId = questionBankQueryRequest.getUserId();
+        String description = questionBankQueryRequest.getDescription();
+        String picture = questionBankQueryRequest.getPicture();
+
         // todo 补充需要的查询条件
         // 从多字段中搜索
         if (StringUtils.isNotBlank(searchText)) {
             // 需要拼接查询条件
-            queryWrapper.and(qw -> qw.like("title", searchText).or().like("content", searchText));
+            queryWrapper.and(qw -> qw.like("title", searchText)
+                        .or()
+                        .like("description", searchText));
         }
         // 模糊查询
+        queryWrapper.like(StringUtils.isNotBlank(description), "description", description);
         queryWrapper.like(StringUtils.isNotBlank(title), "title", title);
 //        queryWrapper.like(StringUtils.isNotBlank(content), "content", content);
         // JSON 数组查询
@@ -102,6 +108,7 @@ public class QuestionBankServiceImpl extends ServiceImpl<QuestionBankMapper, Que
         // 精确查询
         queryWrapper.ne(ObjectUtils.isNotEmpty(notId), "id", notId);
         queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(picture), "picture", picture);
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
         // 排序规则
         queryWrapper.orderBy(SqlUtils.validSortField(sortField),

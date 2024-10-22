@@ -1,7 +1,9 @@
 package com.louis.interViewJi.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.louis.interViewJi.common.ErrorCode;
@@ -10,8 +12,11 @@ import com.louis.interViewJi.exception.ThrowUtils;
 import com.louis.interViewJi.mapper.QuestionMapper;
 import com.louis.interViewJi.model.dto.question.QuestionQueryRequest;
 import com.louis.interViewJi.model.entity.Question;
+import com.louis.interViewJi.model.entity.QuestionBankQuestion;
 import com.louis.interViewJi.model.entity.User;
 import com.louis.interViewJi.model.vo.QuestionVO;
+import com.louis.interViewJi.service.QuestionBankQuestionService;
+import com.louis.interViewJi.service.QuestionBankService;
 import com.louis.interViewJi.service.QuestionService;
 import com.louis.interViewJi.service.UserService;
 import com.louis.interViewJi.utils.SqlUtils;
@@ -38,6 +43,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private QuestionBankQuestionService questionBankQuestionService;
 
     /**
      * 校验数据
@@ -166,6 +174,36 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
         // endregion
         questionVOPage.setRecords(questionVOList);
         return questionVOPage;
+    }
+
+    @Override
+    public Page<Question> questionByPage(QuestionQueryRequest questionQueryRequest) {
+        long current = questionQueryRequest.getCurrent();
+        long size = questionQueryRequest.getPageSize();
+        Long questionBankId = questionQueryRequest.getQuestionBankId();
+        // 获取通用拼接条件组装器
+        QueryWrapper<Question> queryWrapper = this.getQueryWrapper(questionQueryRequest);
+        if(questionBankId != null){
+            // Wrappers 拼接工具类
+            LambdaQueryWrapper<QuestionBankQuestion> bankQuestionLambdaQueryWrapper =
+                    Wrappers.lambdaQuery(QuestionBankQuestion.class) // 指定查询表的对应的 Java 实体类型
+                            .select(QuestionBankQuestion :: getQuestionId) // 指定列查询（相当于不使用 sql 中的 select *）
+                            .eq(QuestionBankQuestion::getQuestionBankId, questionBankId);// lambada 表达式
+            // 入参类型是拼接条件构造器 Wrapper 类型
+            List<QuestionBankQuestion> list = questionBankQuestionService.list(bankQuestionLambdaQueryWrapper);
+            // 每从数据查询出来的数据，进行判空
+            if(CollUtil.isNotEmpty(list)){
+                // 具体业务二次拼接条件
+                Set<Long> questionIdList = list.stream()
+                                        .map(QuestionBankQuestion::getQuestionId)
+                                        .collect(Collectors.toSet());// 去重
+                queryWrapper.in("id",questionIdList);
+            }
+        }
+        // 查询数据库
+        Page<Question> questionPage = this.page(new Page<>(current, size),
+                queryWrapper);
+        return questionPage;
     }
 
 }

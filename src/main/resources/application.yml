@@ -100,4 +100,4 @@ knife4j:
       default:
         api-rule: package
         api-rule-resources:
-          - com.louis.springbootinit.controller
+          - com.louis.interViewJi.controller

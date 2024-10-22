@@ -1,5 +1,7 @@
 package com.louis.interViewJi.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.louis.interViewJi.annotation.AuthCheck;
 import com.louis.interViewJi.common.BaseResponse;
@@ -11,6 +13,7 @@ import com.louis.interViewJi.exception.BusinessException;
 import com.louis.interViewJi.exception.ThrowUtils;
 import com.louis.interViewJi.model.dto.questionBankQuestion.QuestionBankQuestionAddRequest;
 import com.louis.interViewJi.model.dto.questionBankQuestion.QuestionBankQuestionQueryRequest;
+import com.louis.interViewJi.model.dto.questionBankQuestion.QuestionBankQuestionRemoveRequest;
 import com.louis.interViewJi.model.dto.questionBankQuestion.QuestionBankQuestionUpdateRequest;
 import com.louis.interViewJi.model.entity.QuestionBankQuestion;
 import com.louis.interViewJi.model.entity.User;
@@ -201,5 +204,25 @@ public class QuestionBankQuestionController {
         return ResultUtils.success(questionBankQuestionService.getQuestionBankQuestionVOPage(questionBankQuestionPage, request));
     }
 
+    /**
+     * 删除题库题目关联
+     *
+     * @param questionBankQuestionRemove
+     * @return
+     */
+    @PostMapping("/remove")
+    public BaseResponse<Boolean> removeQuestionBankQuestion(@RequestBody QuestionBankQuestionRemoveRequest questionBankQuestionRemove) {
+        ThrowUtils.throwIf(questionBankQuestionRemove == null, ErrorCode.NOT_FOUND_ERROR);
+        Long questionBankId = questionBankQuestionRemove.getQuestionBankId();
+        Long questionId = questionBankQuestionRemove.getQuestionId();
+        LambdaQueryWrapper<QuestionBankQuestion> bankQuestionLambdaQueryWrapper = Wrappers.lambdaQuery(QuestionBankQuestion.class)
+                .eq(QuestionBankQuestion::getQuestionBankId, questionBankId)
+                .eq(QuestionBankQuestion::getQuestionId, questionId);
+        questionBankQuestionService.remove(bankQuestionLambdaQueryWrapper);
+        // 操作数据库
+        boolean result = questionBankQuestionService.remove(bankQuestionLambdaQueryWrapper);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success(true);
+    }
     // endregion
 }
