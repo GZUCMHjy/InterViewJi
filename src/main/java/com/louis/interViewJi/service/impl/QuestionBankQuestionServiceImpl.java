@@ -6,24 +6,21 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.louis.interViewJi.common.ErrorCode;
 import com.louis.interViewJi.constant.CommonConstant;
-import com.louis.interViewJi.exception.BusinessException;
 import com.louis.interViewJi.exception.ThrowUtils;
 import com.louis.interViewJi.mapper.QuestionBankQuestionMapper;
 import com.louis.interViewJi.model.dto.questionBankQuestion.QuestionBankQuestionQueryRequest;
 import com.louis.interViewJi.model.entity.Question;
-import com.louis.interViewJi.model.entity.QuestionBank;
 import com.louis.interViewJi.model.entity.QuestionBankQuestion;
 import com.louis.interViewJi.model.entity.User;
 import com.louis.interViewJi.model.vo.QuestionBankQuestionVO;
 import com.louis.interViewJi.model.vo.UserVO;
 import com.louis.interViewJi.service.QuestionBankQuestionService;
-import com.louis.interViewJi.service.QuestionBankService;
 import com.louis.interViewJi.service.QuestionService;
 import com.louis.interViewJi.service.UserService;
 import com.louis.interViewJi.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -32,7 +29,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.prefs.BackingStoreException;
 import java.util.stream.Collectors;
 
 /**
@@ -48,10 +44,9 @@ public class QuestionBankQuestionServiceImpl extends ServiceImpl<QuestionBankQue
     private UserService userService;
 
     @Resource
+    @Lazy
     private QuestionService questionService;
-
-    @Resource
-    private QuestionBankService questionBankService;
+    
     /**
      * 校验数据
      *
@@ -70,7 +65,7 @@ public class QuestionBankQuestionServiceImpl extends ServiceImpl<QuestionBankQue
         }
         Long questionBankId = questionBankQuestion.getQuestionBankId();
         if(questionBankId != null){
-            QuestionBank questionBank = questionBankService.getById(questionBankId);
+            QuestionBankQuestion questionBank = this.getById(questionBankId);
             ThrowUtils.throwIf(questionBank == null,ErrorCode.NOT_FOUND_ERROR,"题库不存在");
         }
     }

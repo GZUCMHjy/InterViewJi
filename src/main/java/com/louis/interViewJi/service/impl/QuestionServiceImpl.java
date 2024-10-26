@@ -23,6 +23,7 @@ import com.louis.interViewJi.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -45,6 +46,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
     private UserService userService;
 
     @Resource
+    @Lazy
     private QuestionBankQuestionService questionBankQuestionService;
 
     /**
@@ -198,6 +200,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question> i
                                         .map(QuestionBankQuestion::getQuestionId)
                                         .collect(Collectors.toSet());// 去重
                 queryWrapper.in("id",questionIdList);
+            }else{
+                // 题库为空，返回空列表
+                return new Page<>(current,size,0);
             }
         }
         // 查询数据库
