@@ -1,5 +1,6 @@
 package com.louis.interViewJi.controller;
 
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.louis.interViewJi.annotation.AuthCheck;
 import com.louis.interViewJi.common.BaseResponse;
@@ -16,6 +17,7 @@ import com.louis.interViewJi.model.dto.questionBank.QuestionBankQueryRequest;
 import com.louis.interViewJi.model.dto.questionBank.QuestionBankUpdateRequest;
 import com.louis.interViewJi.model.entity.Question;
 import com.louis.interViewJi.model.entity.QuestionBank;
+import com.louis.interViewJi.model.entity.QuestionBankQuestion;
 import com.louis.interViewJi.model.entity.User;
 import com.louis.interViewJi.model.vo.QuestionBankVO;
 import com.louis.interViewJi.service.QuestionBankService;
@@ -23,10 +25,13 @@ import com.louis.interViewJi.service.QuestionService;
 import com.louis.interViewJi.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 题库接口
@@ -254,6 +259,7 @@ public class QuestionBankController {
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         return ResultUtils.success(true);
     }
+
 
     // endregion
 }

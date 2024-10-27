@@ -5,9 +5,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.louis.interViewJi.model.dto.questionBank.QuestionBankQueryRequest;
 import com.louis.interViewJi.model.entity.QuestionBank;
+import com.louis.interViewJi.model.entity.User;
 import com.louis.interViewJi.model.vo.QuestionBankVO;
 
 import javax.servlet.http.HttpServletRequest;
+
 
 /**
  * 题库服务

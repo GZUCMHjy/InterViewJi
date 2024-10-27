@@ -1,10 +1,6 @@
 package com.louis.interViewJi.controller;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.louis.interViewJi.annotation.AuthCheck;
 import com.louis.interViewJi.common.BaseResponse;
@@ -14,16 +10,10 @@ import com.louis.interViewJi.common.ResultUtils;
 import com.louis.interViewJi.constant.UserConstant;
 import com.louis.interViewJi.exception.BusinessException;
 import com.louis.interViewJi.exception.ThrowUtils;
-import com.louis.interViewJi.model.dto.question.QuestionAddRequest;
-import com.louis.interViewJi.model.dto.question.QuestionEditRequest;
-import com.louis.interViewJi.model.dto.question.QuestionQueryRequest;
-import com.louis.interViewJi.model.dto.question.QuestionUpdateRequest;
+import com.louis.interViewJi.model.dto.question.*;
 import com.louis.interViewJi.model.entity.Question;
-import com.louis.interViewJi.model.entity.QuestionBankQuestion;
 import com.louis.interViewJi.model.entity.User;
 import com.louis.interViewJi.model.vo.QuestionVO;
-import com.louis.interViewJi.service.QuestionBankQuestionService;
-import com.louis.interViewJi.service.QuestionBankService;
 import com.louis.interViewJi.service.QuestionService;
 import com.louis.interViewJi.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -50,8 +40,6 @@ public class QuestionController {
     @Resource
     private UserService userService;
 
-    @Resource
-    private QuestionBankQuestionService questionBankQuestionService;
 
     // region 增删改查
 
@@ -268,6 +256,14 @@ public class QuestionController {
         ThrowUtils.throwIf(size > 200, ErrorCode.PARAMS_ERROR);
         Page<Question> questionPage = questionService.searchFromEs(questionQueryRequest);
         return ResultUtils.success(questionService.getQuestionVOPage(questionPage, request));
+    }
+    @PostMapping("/delete/batch")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> batchDeleteQuestions(@RequestBody QuestionBatchDeleteRequest questionBatchDeleteRequest,
+                                                      HttpServletRequest request) {
+        ThrowUtils.throwIf(questionBatchDeleteRequest == null, ErrorCode.PARAMS_ERROR);
+        questionService.batchDeleteQuestions(questionBatchDeleteRequest.getQuestionIdList());
+        return ResultUtils.success(true);
     }
 
     // endregion
