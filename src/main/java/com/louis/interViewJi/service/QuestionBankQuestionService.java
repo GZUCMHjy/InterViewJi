@@ -7,6 +7,7 @@ import com.louis.interViewJi.model.dto.questionBankQuestion.QuestionBankQuestion
 import com.louis.interViewJi.model.entity.QuestionBankQuestion;
 import com.louis.interViewJi.model.entity.User;
 import com.louis.interViewJi.model.vo.QuestionBankQuestionVO;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -66,4 +67,7 @@ public interface QuestionBankQuestionService extends IService<QuestionBankQuesti
      * @param questionBankId
      */
     void batchRemoveQuestionsFromBank(List<Long> questionIdList,Long questionBankId);
+
+    @Transactional(rollbackFor = Exception.class)
+    void batchAddQuestionsToBankInner(List<QuestionBankQuestion> questionBankQuestions);
 }
