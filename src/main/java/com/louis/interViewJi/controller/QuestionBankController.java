@@ -151,7 +151,7 @@ public class QuestionBankController {
         ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
         // 生成 key
         String key = "bank_detail_" + id;
-        // 如果是热 key
+        // 如果是热 key（进行上报）
         if (JdHotKeyStore.isHotKey(key)) {
             // 从本地缓存中获取缓存值
             Object cachedQuestionBankVO = JdHotKeyStore.get(key);

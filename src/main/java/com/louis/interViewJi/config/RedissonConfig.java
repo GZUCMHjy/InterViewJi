@@ -31,8 +31,8 @@ public class RedissonConfig {
         config.useSingleServer()
 //                .setConnectTimeout(timeout) // 未设置使用默认
                 .setAddress("redis://127.0.0.1:6379")
-                .setDatabase(1); // 未设置使用默认
-//                .setPassword(redisProperties.getPassword()); // 未设置使用默认
+                .setDatabase(1) // 未设置使用默认
+                .setPassword(password); // 未设置使用默认
         return Redisson.create(config);
     }
 
