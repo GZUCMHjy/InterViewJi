@@ -201,7 +201,7 @@ public class QuestionBankController {
 
     /**
      * 分页获取题库列表（封装类）
-     *
+     * 根据注解和控制台配置规则进行限流
      * @param questionBankQueryRequest
      * @param request
      * @return
@@ -224,6 +224,7 @@ public class QuestionBankController {
     }
     /**
      * listQuestionBankVOByPage 降级操作：直接返回本地数据
+     * 用来处理业务异常
      */
     public BaseResponse<Page<QuestionBankVO>> handleFallback(@RequestBody QuestionBankQueryRequest questionBankQueryRequest,
                                                              HttpServletRequest request, Throwable ex) {
