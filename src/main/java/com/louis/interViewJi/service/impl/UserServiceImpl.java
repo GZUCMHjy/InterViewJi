@@ -1,7 +1,6 @@
 package com.louis.interViewJi.service.impl;
 
-import static com.louis.interViewJi.constant.UserConstant.USER_LOGIN_STATE;
-
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -16,25 +15,27 @@ import com.louis.interViewJi.model.entity.User;
 import com.louis.interViewJi.model.enums.UserRoleEnum;
 import com.louis.interViewJi.model.vo.LoginUserVO;
 import com.louis.interViewJi.model.vo.UserVO;
+import com.louis.interViewJi.saToken.DeviceUtils;
 import com.louis.interViewJi.service.UserService;
 import com.louis.interViewJi.utils.SqlUtils;
-
-import java.time.LocalDate;
-import java.time.Year;
-import java.util.*;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
-
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
 import org.apache.commons.lang3.StringUtils;
-import org.redisson.Redisson;
 import org.redisson.api.RBitSet;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static com.louis.interViewJi.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
  * 用户服务实现
@@ -119,8 +120,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             log.info("user login failed, userAccount cannot match userPassword");
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在或密码错误");
         }
-        // 3. 记录用户的登录态
-        request.getSession().setAttribute(USER_LOGIN_STATE, user);
+        // 3. 记录用户的登录态（废弃）
+//        request.getSession().setAttribute(USER_LOGIN_STATE, user);
+        // 3. 替换成 saToken 存储登录态,并指定设备，同端登录互斥
+        StpUtil.login(user.getId(), DeviceUtils.getRequestDevice(request));
+        StpUtil.getSession().set(USER_LOGIN_STATE, user);
+
         return this.getLoginUserVO(user);
     }
 
@@ -164,15 +169,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public User getLoginUser(HttpServletRequest request) {
-        // 先判断是否已登录
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        User currentUser = (User) userObj;
-        if (currentUser == null || currentUser.getId() == null) {
-            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        // 先判断是否已登录(saToken 版本)
+        Object loginUserId = StpUtil.getLoginIdDefaultNull();
+        if(Objects.isNull(loginUserId)){
+           throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
+        User currentUser = this.getById((String)loginUserId);
+//        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+//        User currentUser = (User) userObj;
+//        if (currentUser == null || currentUser.getId() == null) {
+//            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+//        }
         // 从数据库查询（追求性能的话可以注释，直接走缓存）
-        long userId = currentUser.getId();
-        currentUser = this.getById(userId);
+        // 追求高一致，走数据库，及时更新
+        // 用户数据，不经常改变，走缓存
+        // 其实，实际业务可以结合着来，
         if (currentUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
@@ -224,11 +235,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public boolean userLogout(HttpServletRequest request) {
-        if (request.getSession().getAttribute(USER_LOGIN_STATE) == null) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "未登录");
-        }
-        // 移除登录态
-        request.getSession().removeAttribute(USER_LOGIN_STATE);
+        // saToken 退出登录
+        StpUtil.checkLogin();
+        StpUtil.logout();
+//        if (request.getSession().getAttribute(USER_LOGIN_STATE) == null) {
+//            throw new BusinessException(ErrorCode.OPERATION_ERROR, "未登录");
+//        }
+//        // 移除登录态
+//        request.getSession().removeAttribute(USER_LOGIN_STATE);
         return true;
     }
 
