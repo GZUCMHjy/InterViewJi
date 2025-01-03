@@ -169,26 +169,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public User getLoginUser(HttpServletRequest request) {
-        // 先判断是否已登录(saToken 版本)
-        Object loginUserId = StpUtil.getLoginIdDefaultNull();
-        if(Objects.isNull(loginUserId)){
-           throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
-        }
-        User currentUser = this.getById((String)loginUserId);
-//        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-//        User currentUser = (User) userObj;
-//        if (currentUser == null || currentUser.getId() == null) {
-//            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
-//        }
-        // 从数据库查询（追求性能的话可以注释，直接走缓存）
-        // 追求高一致，走数据库，及时更新
-        // 用户数据，不经常改变，走缓存
-        // 其实，实际业务可以结合着来，
-        if (currentUser == null) {
+        // 先判断是否已登录
+        Object loginId = StpUtil.getLoginIdDefaultNull();
+        if (Objects.isNull(loginId)) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
-        return currentUser;
+        return (User) StpUtil.getSessionByLoginId(loginId).get(USER_LOGIN_STATE);
     }
+
 
     /**
      * 获取当前登录用户（允许未登录）
@@ -218,10 +206,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public boolean isAdmin(HttpServletRequest request) {
         // 仅管理员可查询
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        // 基于 Sa-Token 改造
+        Object userObj = StpUtil.getSession().get(USER_LOGIN_STATE);
+        // Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
         User user = (User) userObj;
         return isAdmin(user);
     }
+
 
     @Override
     public boolean isAdmin(User user) {
